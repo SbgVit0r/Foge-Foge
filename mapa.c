@@ -1,7 +1,20 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include "mapa.h"
+void encontramapa(MAPA* m, POSICAO* p, char c){
+    
+    //acha a posição do foge foge
+    for (int i = 0; i < m->linhas; i++){
+        for(int j = 0; j < m->colunas; j++){
+            if(m->matriz[i][j] == '@'){
+                p->x = i;
+                p->y = j;
+                break;
+            }
+        }
+    }
 
+}
 void liberamapa(MAPA* m){
 
     for (int i = 0; i < m -> linhas; i++){
