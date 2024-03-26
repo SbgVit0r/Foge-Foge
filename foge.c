@@ -1,24 +1,21 @@
 #include <stdio.h>
 #include <stdlib.h>
-
-char** mapa;
-int linhas;
-int colunas;
+#include "foge.h"
 
 void liberamapa(){
 
     for (int i = 0; i < linhas; i++){
-        free(mapa[i]);
+        free(matriz[i]);
     }
-    free(mapa);
+    free(matriz);
 
 }
 
 void alocamapa(){
-    mapa = malloc(sizeof(char*) * linhas);
+    matriz = malloc(sizeof(char*) * linhas);
 
     for(int i = 0; i < linhas; i++){
-        mapa[i] = malloc(sizeof(char) * (colunas + 1));
+        matriz[i] = malloc(sizeof(char) * (colunas + 1));
     }
 }
 
@@ -39,7 +36,7 @@ void lemapa(){
     alocamapa();
 
     for(int i = 0; i < 5; i++){
-        fscanf(f, "%s", mapa[i]);
+        fscanf(f, "%s", matriz[i]);
     }
 
     fclose(f);
@@ -49,7 +46,7 @@ void lemapa(){
 void imprimemapa(){
 
     for(int i = 0; i < 5; i++){
-        printf("%s\n", mapa[i]);
+        printf("%s\n", matriz[i]);
     }
 }
 
@@ -64,7 +61,7 @@ void move(char direcao){
     //acha a posição do foge foge
     for (int i = 0; i < linhas; i++){
         for(int j = 0; j < colunas; j++){
-            if(mapa[i][j] == '@'){
+            if(matriz[i][j] == '@'){
                 x = i;
                 y = j;
                 break;
@@ -74,20 +71,20 @@ void move(char direcao){
 
     switch(direcao){
         case 'a':
-            mapa[x][y-1] = '@';
+            matriz[x][y-1] = '@';
             break;
         case 's':
-            mapa [x+1][y] = '@';
+            matriz [x+1][y] = '@';
             break;
         case 'w':
-            mapa[x-1][y] = '@';
+            matriz[x-1][y] = '@';
             break;
         case 'd':
-            mapa[x][y+1] = '@';
+            matriz[x][y+1] = '@';
             break;
     }
 
-    mapa[x][y] = '.';
+    matriz[x][y] = '.';
 }
 
 
