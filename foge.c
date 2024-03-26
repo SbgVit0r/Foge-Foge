@@ -95,6 +95,7 @@ void move(char direcao){
 int main(){
 
     lemapa();
+    
     do{
        imprimemapa();
 
@@ -102,6 +103,7 @@ int main(){
        scanf(" %c", &comando);
        move(comando);
     }while(!acabou());
+
     liberamapa();
 
 }
