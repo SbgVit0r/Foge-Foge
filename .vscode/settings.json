@@ -2,7 +2,8 @@
     "files.associations": {
         "stdlib.h": "c",
         "foge.h": "c",
-        "stdio.h": "c"
+        "stdio.h": "c",
+        "mapa.h": "c"
     },
     "C_Cpp.errorSquiggles": "disabled"
 }
