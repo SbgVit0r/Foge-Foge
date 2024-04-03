@@ -1,10 +1,12 @@
 #define CIMA 'w'
 #define BAIXO 's'
+#define DIREITA 'd'
 #define ESQUERDA 'a'
-#define DIREITA 'd' 
+#define BOMBA 'b'
 
-void move(char direcao);
 int acabou();
-int direcaoheroi(char direcao);
+void move(char direcao);
+ 
+int ehdirecao(char direcao);
 void fantasmas();
-int direcaofantasma(int xatual, int yatual, int* xdestino, int* ydestino);
+void explodepilula(int x, int y, int qtd);

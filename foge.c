@@ -1,126 +1,142 @@
-// Importando as bibliotecas necessárias e os header files
 #include <stdio.h>
 #include <stdlib.h>
-#include <time.h>
+#include "time.h"
 #include "foge.h"
 #include "mapa.h"
 
 MAPA m;
 POSICAO heroi;
 
-int direcaofantasma(int xatual, int yatual, int* xdestino, int* ydestino){
-    // Matriz que armazena as direções possiveis do fantasma
-    int opcoes[4][2] = {
-        { xatual, yatual +1},
-        { xatual +1, yatual},
-        { xatual, yatual -1},
-        { xatual -1, yatual}
-    };
+int tempilula = 0;
 
-    // Inicializa o gerador de numeros aleatorios
-    srand(time(0));
+int acabou() {
+	POSICAO pos;
 
-    // loop for que se repete 10 vezes para encontrar uma direção para o fantasma
-    for(int i = 0; i < 10; i++){
-        
-        // gera um numero aleatorio entre 0 e 3
-        int posicao = rand() % 4;
+	int perdeu = !encontramapa(&m, &pos, HEROI);
+	int ganhou = !encontramapa(&m, &pos, FANTASMA);
 
-        if(validadirecao(&m, opcoes[posicao][0], opcoes[posicao][1]) && direcaovazia(&m, opcoes[posicao][0], opcoes[posicao][1])){
-            *xdestino = opcoes[posicao][0];
-            *ydestino = opcoes[posicao][1];
-
-            return 1;
-        }
-    }
-    return 0;
+	return ganhou || perdeu;
+		
 }
 
-void fantasmas(){
-    MAPA copia;
-
-    copiamapa(&copia, &m);
-    for (int i = 0; i < m.linhas; i++){
-       for (int j = 0; j < m.colunas; j++){
-
-            if(copia.matriz[i][j] == FANTASMA){
-
-                int xdestino;
-                int ydestino;
-
-                int encontrou = direcaofantasma(i, j, &xdestino, &ydestino);
-                if(validadirecao(&m, i, j+1) && direcaovazia(&m, i, j+1)){
-                    andanomapa(&m, i, j, i, j+1);
-                }
-            }     
-       }  
-    }
-
-    liberamapa(&copia);
-
+int ehdirecao(char direcao) {
+	return
+		direcao == ESQUERDA || 
+		direcao == CIMA ||
+		direcao == BAIXO ||
+		direcao == DIREITA;
 }
 
-int acabou(){
-    return 0;
+void move(char direcao) {
+
+	if(!ehdirecao(direcao))	
+		return;
+
+	int proximox = heroi.x;
+	int proximoy = heroi.y;
+
+	switch(direcao) {
+		case ESQUERDA:
+			proximoy--;
+			break;
+		case CIMA:
+			proximox--;
+			break;
+		case BAIXO:
+			proximox++;
+			break;
+		case DIREITA:
+			proximoy++;
+			break;
+	}
+
+	if(!podeandar(&m, HEROI, proximox, proximoy))
+		return;
+    
+    if(ehpersonagem(&m, HEROI, proximox, proximoy)){
+        tempilula = 1;
+    }
+
+	andanomapa(&m, heroi.x, heroi.y, proximox, proximoy);
+	heroi.x = proximox;
+	heroi.y = proximoy;
 }
 
-int direcaoheroi(char direcao){
-    return direcao == ESQUERDA || direcao == DIREITA || direcao == BAIXO || direcao == CIMA;
+int praondefantasmavai(int xatual, int yatual, 
+	int* xdestino, int* ydestino) {
 
+	int opcoes[4][2] = { 
+		{ xatual   , yatual+1 }, 
+		{ xatual+1 , yatual   },  
+		{ xatual   , yatual-1 }, 
+		{ xatual-1 , yatual   }
+	};
+
+	srand(time(0));
+	for(int i = 0; i < 10; i++) {
+		int posicao = rand() % 4;
+
+		if(podeandar(&m, FANTASMA, opcoes[posicao][0], opcoes[posicao][1])) {
+			*xdestino = opcoes[posicao][0];
+			*ydestino = opcoes[posicao][1];
+			return 1;
+		}
+	}
+
+	return 0;
 }
 
-void move(char direcao){
-    if(!direcaoheroi(direcao)){
-        return;
-    }
+void fantasmas() {
+	MAPA copia;
 
-    int proximox = heroi.x;
-    int proximoy = heroi.y;
+	copiamapa(&copia, &m);
 
-    switch(direcao){
-        case ESQUERDA:
-            proximoy--;
-            break;
-        case DIREITA:
-            proximoy++;
-            break;
-        case BAIXO:
-            proximox++;
-            break;
-        case CIMA:
-            proximox--;
-            break;
-        
-    }
+	for(int i = 0; i < copia.linhas; i++) {
+		for(int j = 0; j < copia.colunas; j++) {
+			if(copia.matriz[i][j] == FANTASMA) {
 
-    if(!validadirecao(&m, proximox, proximoy)){
-        return;
-    }
+				int xdestino;
+				int ydestino;
 
-    if(!direcaovazia(&m, proximox, proximoy)){
-        return;
-    }
+				int encontrou = praondefantasmavai(i, j, &xdestino, &ydestino);
 
-    andanomapa(&m, heroi.x, heroi.y, proximox, proximoy);
-    heroi.x = proximox;
-    heroi.y = proximoy;
+				if(encontrou) {
+					andanomapa(&m, i, j, xdestino, ydestino);
+				}
+			}
+		}
+	}
 
+	liberamapa(&copia);
 }
 
+void explodepilula(int x, int y, int qtd){
 
+	if(qtd == 0) return;
+	if(!ehvalida(&m, x, y+1)) return;
+	if(ehparede(&m, x, y+1)) return;
+	
+    m.matriz[x][y+1] = VAZIO;      
+	explodepilula(x, y+1, qtd - 1);
+}
 
-int main(){
+int main() {
+	
+	lemapa(&m);
+	encontramapa(&m, &heroi, HEROI);
 
-    lemapa(&m);
-    encontramapa(&m, &heroi, HEROI);
-    do{
-       imprimemapa(&m);
+	do {
+        printf("Tem pilula? %s\n", (tempilula ? "SIM" : "NAO"));
+		imprimemapa(&m);
 
-       char comando;
-       scanf(" %c", &comando);
-       move(comando);
-    }while(!acabou());
+		char comando;
+		scanf(" %c", &comando);
 
-    liberamapa(&m);
+		move(comando);
+        if(comando == BOMBA) explodepilula(heroi.x, heroi.y, 3);
+		fantasmas();
 
+	} while (!acabou());
+
+	liberamapa(&m);
 }

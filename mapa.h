@@ -1,29 +1,35 @@
 #define HEROI '@'
-#define FANTASMA 'F'
 #define VAZIO '.'
 #define PAREDE_VERTICAL '|'
 #define PAREDE_HORIZONTAL '-'
+#define FANTASMA 'F'
+#define PILULA 'P'
 
-struct mapa{
-    char** matriz;
-    int linhas;
-    int colunas;
-};
 
-struct posicao{
-    int x;
-    int y;
+struct mapa {
+	char** matriz;
+	int linhas;
+	int colunas; 
 };
 
 typedef struct mapa MAPA;
-typedef struct posicao POSICAO;
 
-void lemapa(MAPA* m);
 void alocamapa(MAPA* m);
+void lemapa(MAPA* m);
 void liberamapa(MAPA* m);
 void imprimemapa(MAPA* m);
-void encontramapa(MAPA* m, POSICAO* p, char c);
-int validadirecao(MAPA* m, int x, int y);
-int direcaovazia(MAPA* m, int x, int y);
+
+struct posicao {
+	int x;
+	int y;
+};
+
+typedef struct posicao POSICAO;
+
+int encontramapa(MAPA* m, POSICAO* p, char c);
+int ehvalida(MAPA* m, int x, int y);
+int ehparede(MAPA* m, int x, int y);
+int ehpersonagem(MAPA* m, char personagem, int x, int y);
+int podeandar(MAPA* m, char personagem, int x, int y);
 void andanomapa(MAPA* m, int xorigem, int yorigem, int xdestino, int ydestino);
-void copiamapa(MAPA* origem, MAPA* destino);
+void copiamapa(MAPA* destino, MAPA* origem);

@@ -1,115 +1,107 @@
 #include <stdio.h>
 #include <stdlib.h>
-#include <string.h>
 #include "mapa.h"
+#include <string.h>
 
-//
-void copiamapa(MAPA* origem, MAPA* destino){
-    destino -> linhas = origem -> linhas;
-    destino -> colunas = origem -> colunas;
+void lemapa(MAPA* m) {
+	FILE* f;
+	f = fopen("mapa.txt", "r");
+	if(f == 0) {
+		printf("Erro na leitura do mapa");
+		exit(1);
+	}
 
-    alocamapa(destino);
-    for(int i = 0; i < origem->linhas; i++){
-        strcpy(destino->matriz[i], origem->matriz[i]);
-    }
+	fscanf(f, "%d %d", &(m->linhas), &(m->colunas));
+	alocamapa(m);
+	
+	for(int i = 0; i < m->linhas; i++) {
+		fscanf(f, "%s", m->matriz[i]);
+	}
+
+	fclose(f);
 }
 
-void andanomapa(MAPA* m, int xorigem, int yorigem, int xdestino, int ydestino){
-    // Declara a posição inicial do nosso personagem
-    char personagem = m->matriz[xorigem][yorigem];
-    // Atribui a posição inicial
-    m->matriz[xdestino][ydestino] = personagem;
-    // Muda a posição 
-    m->matriz[xorigem][yorigem] = VAZIO;
+void alocamapa(MAPA* m) {
+	m->matriz = malloc(sizeof(char*) * m->linhas);
+
+	for(int i = 0; i < m->linhas; i++) {
+		m->matriz[i] = malloc(sizeof(char) * m->colunas + 1);
+	}
 }
 
-int validadirecao(MAPA* m, int x, int y){
-
-    // Caso o heroi bater em uma das paredes horizontais, ele não se move
-    if (x >= m->linhas){
-        return 0;
-    }
-
-    // Caso o heroi bater em uma das paredes verticais, ele não se move
-    if (y >= m->colunas){
-        return 0;
-    }
-
-    return 1;
-
+void copiamapa(MAPA* destino, MAPA* origem) {
+	destino->linhas = origem->linhas;
+	destino->colunas = origem->colunas;
+	alocamapa(destino);
+	for(int i = 0; i < origem->linhas; i++) {
+		strcpy(destino->matriz[i], origem->matriz[i]);
+	}
 }
 
-//
-int direcaovazia(MAPA* m, int x, int y){
-    return m->matriz[x][y] != VAZIO;
+
+void liberamapa(MAPA* m) {
+	for(int i = 0; i < m->linhas; i++) {
+		free(m->matriz[i]);
+	}
+
+	free(m->matriz);
 }
 
-//
-void encontramapa(MAPA* m, POSICAO* p, char c){
-    
-    //acha a posição do foge foge
-    for (int i = 0; i < m->linhas; i++){
-        for(int j = 0; j < m->colunas; j++){
-            if(m->matriz[i][j] == HEROI){
-                p->x = i;
-                p->y = j;
-                break;
-            }
-        }
-    }
-
+void imprimemapa(MAPA* m) {
+	for(int i = 0; i < m->linhas; i++) {
+		printf("%s\n", m->matriz[i]);
+	}
 }
 
-void liberamapa(MAPA* m){
+int encontramapa(MAPA* m, POSICAO* p, char c) {
 
-    for (int i = 0; i < m -> linhas; i++){
-        free(m->matriz[i]);
-    }
-    free(m->matriz);
+	for(int i = 0; i < m->linhas; i++) {
+		for(int j = 0; j < m->colunas; j++) {
+			if(m->matriz[i][j] == c) {
+				p->x = i;
+				p->y = j;
+				return 1;
+			}
+		}
+	}
 
+	// não encontramos!
+	return 0;
 }
 
-void alocamapa(MAPA* m){
-    m->matriz = malloc(sizeof(char*) * m->linhas);
-
-    for(int i = 0; i < m->linhas; i++){
-        m->matriz[i] = malloc(sizeof(char) * (m->colunas + 1));
-    }
+int podeandar(MAPA* m, char personagem, int x, int y) {
+	return 
+		ehvalida(m, x, y) && 
+		!ehparede(m, x, y) &&
+		!ehpersonagem(m, personagem, x, y);
 }
 
-void lemapa(MAPA* m){
+int ehvalida(MAPA* m, int x, int y) {
+	if(x >= m->linhas) 
+		return 0;
+	if(y >= m->colunas) 
+		return 0;
 
-    // Ponteiro para a função FILE
-    FILE* f;
-
-    // Variavel que abre o arquivo e lê ele
-    f = fopen("mapa.txt", "r");
-
-    // Caso não esteja disponivel, o programa fecha
-    if(f == 0){
-        printf("erro na leitura\n");
-        exit(1);
-    }
-
-    // Escaneia o arquivo txt do mapa e suas linhas e colunas
-    fscanf(f, "%d %d", &m->linhas, &m->colunas);
-
-    printf("linhas %d colunas %d\n", m->linhas, m->colunas);
-
-    alocamapa(m);
-
-    for(int i = 0; i < 5; i++){
-        fscanf(f, "%s", m->matriz[i]);
-    }
-
-    fclose(f);
-
+	return 1;	
 }
 
-void imprimemapa(MAPA* m){
+int ehpersonagem(MAPA* m, char personagem, int x, int y) {
+	return
+		m->matriz[x][y] == personagem;
+}
 
-    // Imprime o arquivo escaneado na tela
-    for(int i = 0; i < 5; i++){
-        printf("%s\n", m->matriz[i]);
-    }
+int ehparede(MAPA* m, int x, int y) {
+	return 
+		m->matriz[x][y] == PAREDE_VERTICAL ||
+		m->matriz[x][y] == PAREDE_HORIZONTAL;
+}
+
+
+void andanomapa(MAPA* m, int xorigem, int yorigem, 
+	int xdestino, int ydestino) {
+
+	char personagem = m->matriz[xorigem][yorigem];
+	m->matriz[xdestino][ydestino] = personagem;
+	m->matriz[xorigem][yorigem] = VAZIO;
+
 }
